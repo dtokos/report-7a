@@ -1,7 +1,7 @@
 import {contextBridge, ipcRenderer} from 'electron';
 
-contextBridge.exposeInMainWorld('api', {
-	get: (url) => {
-		return ipcRenderer.invoke('api@get', url);
+contextBridge.exposeInMainWorld('request', {
+	send: config => {
+		return ipcRenderer.invoke('request@send', config);
 	},
 });

@@ -1,8 +1,8 @@
 import {ipcMain} from 'electron';
 import axios from 'axios';
 
-ipcMain.handle('api@get', (_, url) => {
-	return axios.get(url).then(res => {
+ipcMain.handle('request@send', (_, config) => {
+	return axios(config).then(res => {
 		return {
 			status: res.status,
 			statusText: res.statusText,

@@ -1,33 +1,57 @@
 <template>
-	<button @click="addItem()">Pridať</button>
-	<table>
-		<thead>
+	<table class="min-w-full divide-y divide-gray-200">
+		<thead class="bg-gray-50">
 			<tr>
-				<th>Suma</th>
-				<th>Dátum prijatia platby</th>
-				<th>Kurz</th>
-				<th>Mena</th>
-				<th>Výsledná suma</th>
-				<th></th>
+				<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suma</th>
+				<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dátum prijatia platby</th>
+				<th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Kurz</th>
+				<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Výsledná suma</th>
+				<th class="px-6 py-3 text-center">
+					<button @click="addItem()" class="text-xs font-medium text-indigo-600 hover:text-indigo-900 uppercase tracking-wider">Pridať</button>
+				</th>
 			</tr>
 		</thead>
-		<tbody>
+		<tbody class="bg-white divide-y divide-gray-200">
 			<tr v-for="item in items" :key="item.id">
-				<td><input type="number" :value="item.amount" @change="changeAmount(item.id, $event.target.value)"></td>
-				<td><input type="date" :value="item.paymentDate && item.paymentDate.format('YYYY-MM-DD')" @change="changePaymentDate(item.id, $event.target.value)"></td>
-				<td>
+				<td class="px-6 py-4 whitespace-nowrap">
+					<div class="relative rounded-sm shadow-sm">
+						<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+							<span class="text-gray-500 sm:text-sm">$</span>
+						</div>
+						<input type="number" :value="item.amount" @change="changeAmount(item.id, $event.target.value)" class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 pr-18 sm:text-sm border-gray-300 rounded-md" placeholder="0.00">
+						<div class="absolute inset-y-0 right-0 flex items-center">
+							<select :value="item.currency" @change="changeCurrency(item.id, $event.target.value)" class="focus:ring-indigo-500 focus:border-indigo-500 w-18 h-full py-0 pl-2 pr-7 border-transparent bg-transparent text-gray-500 sm:text-sm rounded-md">
+								<option v-for="(label, code) in currencies" :value="code" :key="code">{{ code }}</option>
+							</select>
+						</div>
+					</div>
+				</td>
+				<td class="px-6 py-4 whitespace-nowrap">
+					<div class="relative rounded-sm shadow-sm">
+						<input type="date" :value="item.paymentDate && item.paymentDate.format('YYYY-MM-DD')" @change="changePaymentDate(item.id, $event.target.value)" class="focus:ring-indigo-500 focus:border-indigo-500 block w-full px-4 sm:text-sm border-gray-300 rounded-md" placeholder="DD / MM / YYYY">
+					</div>
+				</td>
+				<td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
 					<template v-if="item.rateInfo">
-						{{ item.rateInfo.rateDate.format('DD. MM. YYYY') }}<br>
-						{{ item.rateInfo.rate }}
+						<span class="font-medium">{{ item.rateInfo.rate }}</span><br>
+						<small>{{ item.rateInfo.rateDate.format('DD. MM. YYYY') }}</small>
 					</template>
 				</td>
-				<td>
-					<select :value="item.currency" @change="changeCurrency(item.id, $event.target.value)">
-						<option v-for="(label, code) in currencies" :value="code" :key="code">{{ label }}</option>
-					</select>
+				<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
+					{{ formatCurrency(item.convertedAmount) }}
 				</td>
-				<th>{{ formatCurrency(item.convertedAmount) }}</th>
-				<th><button @click="removeItem(item.id)">&times;</button></th>
+				<td class="px-6 py-4 whitespace-nowrap text-center">
+					<button @click="removeItem(item.id)" class="text-xs font-medium text-indigo-600 hover:text-indigo-900 uppercase tracking-wider">Zmazať</button>
+				</td>
+			</tr>
+			<tr>
+				<td></td>
+				<td></td>
+				<td class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Spolu:</td>
+				<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
+					{{ formatCurrency(total) }}
+				</td>
+				<td></td>
 			</tr>
 		</tbody>
 	</table>
@@ -56,6 +80,9 @@ export default {
 					convertedAmount: this.convert(item.amount, this.rateForPayment(paymentDate, item.currency)),
 				});
 			});
+		},
+		total() {
+			return this.items.reduce((total, item) => total + (item.convertedAmount || 0), 0);
 		},
 	},
 	methods: {
@@ -116,11 +143,11 @@ export default {
 		},
 		convert(amount, rateInfo) {
 			if (!amount || !rateInfo) return null;
-			return amount * rateInfo.rate;
+			return amount / rateInfo.rate;
 		},
 		formatCurrency(amount) {
 			if (!amount) return null;
-			else return `${Number(amount).toFixed(2)}€`
+			else return `${Number(amount).toFixed(2)} €`
 		},
 	},
 	mounted() {

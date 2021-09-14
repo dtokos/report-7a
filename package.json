@@ -11,7 +11,7 @@
 		"postinstall": "electron-builder install-app-deps",
 		"postuninstall": "electron-builder install-app-deps"
 	},
-	"main": "main.js",
+	"main": "background.js",
 	"dependencies": {
 		"@tailwindcss/forms": "^0.3.3",
 		"@tailwindcss/postcss7-compat": "^2.0.2",
